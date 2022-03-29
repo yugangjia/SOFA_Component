@@ -7,12 +7,12 @@ sofalast as (select s1.stay_id,maxhr.max_hr,respiration_24hours as resp_last,coa
 cardiovascular_24hours as cv_last,cns_24hours as cns_last,renal_24hours as renal_last from physionet-data.mimic_derived.sofa as s1 right join maxhr on s1.hr=maxhr.max_hr and s1.stay_id = maxhr.stay_id),
 vent24 as (select s.stay_id,v.ventilation_status as vent_24 from (select * from physionet-data.mimic_derived.sofa where hr=24)  as s inner join 
 (select * from `physionet-data.mimic_derived.ventilation` where ventilation_status = "InvasiveVent") as v 
-on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+on s.stay_id = v.stay_id  and s.starttime >= v.starttime and s.endtime<=v.endtime),
 vent168 as (select s.stay_id,v.ventilation_status as vent_168 from (select * from physionet-data.mimic_derived.sofa where hr=168)  as s inner join 
 (select * from `physionet-data.mimic_derived.ventilation` where ventilation_status = "InvasiveVent") as v 
-on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+on s.stay_id = v.stay_id  and s.starttime >= v.starttime and s.endtime<=v.endtime),
 adm as (select hadm_id, deathtime,admission_type,admission_location,discharge_location from `physionet-data.mimic_core.admissions`)
-select *,s3.sepsis3 from  `physionet-data.mimic_derived.icustay_detail` as cohort 
+select * from  `physionet-data.mimic_derived.icustay_detail` as cohort 
 left join sofa24 on cohort.stay_id = sofa24.stay_id 
 left join sofa168 on cohort.stay_id = sofa168.stay_id
 left join sofalast on cohort.stay_id = sofalast.stay_id
