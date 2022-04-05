@@ -17,7 +17,7 @@ as s left join
 (select * from `physionet-data.mimic_derived.ventilation` where ventilation_status = "InvasiveVent") as v 
 on s.stay_id = v.stay_id  and s.starttime <= v.endtime),
 adm as (select hadm_id, deathtime,admission_type,admission_location,discharge_location from `physionet-data.mimic_core.admissions`)
-select * from  `physionet-data.mimic_derived.icustay_detail` as cohort 
+select distinct * from  `physionet-data.mimic_derived.icustay_detail` as cohort 
 left join sofa24 on cohort.stay_id = sofa24.stay_id 
 left join sofa168 on cohort.stay_id = sofa168.stay_id
 left join sofalast on cohort.stay_id = sofalast.stay_id
