@@ -11,6 +11,11 @@ on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) a
 vent168 as (select s.stay_id,v.ventilation_status as vent_168 from (select * from physionet-data.mimic_derived.sofa where hr=168)  as s inner join 
 (select * from `physionet-data.mimic_derived.ventilation` where ventilation_status = "InvasiveVent") as v 
 on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+ventlast as  (select v.stay_id, v.ventilation_status as vent_last from (select sf.stay_id,sf.starttime,sf.endtime,sf.hr from physionet-data.mimic_derived.sofa as sf 
+inner join maxhr on maxhr.stay_id = sf.stay_id and maxhr.max_hr=sf.hr+24) 
+as s left join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status = "InvasiveVent") as v 
+on s.stay_id = v.stay_id  and s.starttime <= v.endtime),
 adm as (select hadm_id, deathtime,admission_type,admission_location,discharge_location from `physionet-data.mimic_core.admissions`)
 select * from  `physionet-data.mimic_derived.icustay_detail` as cohort 
 left join sofa24 on cohort.stay_id = sofa24.stay_id 
@@ -18,5 +23,6 @@ left join sofa168 on cohort.stay_id = sofa168.stay_id
 left join sofalast on cohort.stay_id = sofalast.stay_id
 left join vent24 on cohort.stay_id = vent24.stay_id
 left join vent168 on cohort.stay_id = vent168.stay_id
+left join ventlast on ventlast.stay_id = cohort.stay_id
 left join adm on cohort.hadm_id = adm.hadm_id
 left join physionet-data.mimic_derived.sepsis3 as s3 on cohort.stay_id = s3.stay_id
