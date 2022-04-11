@@ -3,7 +3,7 @@ library(lubridate)
 library(nycflights13)
 
 
-rawdata<- read_csv(file='C:/Users/chenzy/Desktop/MIT new/Afterfirstmeeting/Figure 1/rawdata.csv')
+rawdata<- read_csv(file='C:/Users/chenzy/Desktop/MIT new/Check/rawdata.csv')
 df1 <-rawdata
 
 ## 24hours is 1*24*60*60 = 86400 seconds
@@ -35,4 +35,4 @@ nrow(df2) - nrow(df5)
 df6<-df5[!(is.na(df5$cns_24)),]
 nrow(df5) - nrow(df6)
 
-write.csv(df6,'C:/Users/chenzy/Desktop/MIT new/Afterfirstmeeting/NewFigure1.csv')
+write.csv(df6,'C:/Users/chenzy/Desktop/MIT new/check/NewFigure1.csv')
