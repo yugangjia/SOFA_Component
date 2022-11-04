@@ -1,0 +1,117 @@
+with maxhr as (select stay_id,max(hr) as max_hr from physionet-data.mimic_derived.sofa group by stay_id),
+sofa24 as (select stay_id,respiration_24hours as resp_24,coagulation_24hours as coag_24,liver_24hours as liver_24,
+cardiovascular_24hours as cv_24,cns_24hours as cns_24,renal_24hours as renal_24 from physionet-data.mimic_derived.sofa where hr = 24 ),
+sofa168 as (select stay_id,respiration_24hours as resp_168,coagulation_24hours as coag_168,liver_24hours as liver_168,
+cardiovascular_24hours as cv_168,cns_24hours as cns_168,renal_24hours as renal_168 from physionet-data.mimic_derived.sofa where hr = 168),
+sofalast as (select s1.stay_id,maxhr.max_hr,respiration_24hours as resp_last,coagulation_24hours as coag_last,liver_24hours as liver_last,
+cardiovascular_24hours as cv_last,cns_24hours as cns_last,renal_24hours as renal_last from physionet-data.mimic_derived.sofa as s1 right join maxhr on s1.hr=maxhr.max_hr and s1.stay_id = maxhr.stay_id),
+vent24 as (select s.stay_id,v.ventilation_status as vent_24 from (select * from physionet-data.mimic_derived.sofa where hr=24)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+vent168 as (select s.stay_id,v.ventilation_status as vent_168 from (select * from physionet-data.mimic_derived.sofa where hr=168)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+ventlast as  (select v.stay_id, v.ventilation_status as vent_last from (select sf.stay_id,sf.starttime,sf.endtime,sf.hr from physionet-data.mimic_derived.sofa as sf 
+inner join maxhr on maxhr.stay_id = sf.stay_id and maxhr.max_hr=sf.hr+24) 
+as s left join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status = "InvasiveVent") as v 
+on s.stay_id = v.stay_id  and s.starttime <= v.endtime),
+adm as (select hadm_id, deathtime,admission_type,admission_location,discharge_location from `physionet-data.mimic_core.admissions`)
+select distinct * from  `physionet-data.mimic_derived.icustay_detail` as cohort 
+left join sofa24 on cohort.stay_id = sofa24.stay_id 
+left join sofa168 on cohort.stay_id = sofa168.stay_id
+left join sofalast on cohort.stay_id = sofalast.stay_id
+left join vent24 on cohort.stay_id = vent24.stay_id
+left join vent168 on cohort.stay_id = vent168.stay_id
+left join ventlast on ventlast.stay_id = cohort.stay_id
+left join adm on cohort.hadm_id = adm.hadm_id
+left join physionet-data.mimic_derived.sepsis3 as s3 on cohort.stay_id = s3.stay_id
+
+
+
+## New cohort_selection(day1 to day10)
+
+with maxhr as (select stay_id,max(hr) as max_hr from physionet-data.mimic_derived.sofa group by stay_id),
+sofa24 as (select stay_id,respiration_24hours as resp_24,coagulation_24hours as coag_24,liver_24hours as liver_24,
+cardiovascular_24hours as cv_24,cns_24hours as cns_24,renal_24hours as renal_24 from physionet-data.mimic_derived.sofa where hr = 24 ),
+sofa48 as (select stay_id,respiration_24hours as resp_48,coagulation_24hours as coag_48,liver_24hours as liver_48,
+cardiovascular_24hours as cv_48,cns_24hours as cns_48,renal_24hours as renal_48 from physionet-data.mimic_derived.sofa where hr = 48),
+sofa72 as (select stay_id,respiration_24hours as resp_72,coagulation_24hours as coag_72,liver_24hours as liver_72,
+cardiovascular_24hours as cv_72,cns_24hours as cns_72,renal_24hours as renal_72 from physionet-data.mimic_derived.sofa where hr = 72),
+sofa96 as (select stay_id,respiration_24hours as resp_96,coagulation_24hours as coag_96,liver_24hours as liver_96,
+cardiovascular_24hours as cv_96,cns_24hours as cns_96,renal_24hours as renal_96 from physionet-data.mimic_derived.sofa where hr = 96),
+sofa120 as (select stay_id,respiration_24hours as resp_120,coagulation_24hours as coag_120,liver_24hours as liver_120,
+cardiovascular_24hours as cv_120,cns_24hours as cns_120,renal_24hours as renal_120 from physionet-data.mimic_derived.sofa where hr = 120),
+sofa144 as (select stay_id,respiration_24hours as resp_144,coagulation_24hours as coag_144,liver_24hours as liver_144,
+cardiovascular_24hours as cv_144,cns_24hours as cns_144,renal_24hours as renal_144 from physionet-data.mimic_derived.sofa where hr = 144),
+sofa168 as (select stay_id,respiration_24hours as resp_168,coagulation_24hours as coag_168,liver_24hours as liver_168,
+cardiovascular_24hours as cv_168,cns_24hours as cns_168,renal_24hours as renal_168 from physionet-data.mimic_derived.sofa where hr = 168),
+sofa192 as (select stay_id,respiration_24hours as resp_192,coagulation_24hours as coag_192,liver_24hours as liver_192,
+cardiovascular_24hours as cv_192,cns_24hours as cns_192,renal_24hours as renal_192 from physionet-data.mimic_derived.sofa where hr = 192),
+sofa216 as (select stay_id,respiration_24hours as resp_216,coagulation_24hours as coag_216,liver_24hours as liver_216,
+cardiovascular_24hours as cv_216,cns_24hours as cns_216,renal_24hours as renal_216 from physionet-data.mimic_derived.sofa where hr = 216),
+sofa240 as (select stay_id,respiration_24hours as resp_240,coagulation_24hours as coag_240,liver_24hours as liver_240,
+cardiovascular_24hours as cv_240,cns_24hours as cns_240,renal_24hours as renal_240 from physionet-data.mimic_derived.sofa where hr = 240),
+sofalast as (select s1.stay_id,maxhr.max_hr,respiration_24hours as resp_last,coagulation_24hours as coag_last,liver_24hours as liver_last,
+cardiovascular_24hours as cv_last,cns_24hours as cns_last,renal_24hours as renal_last from physionet-data.mimic_derived.sofa as s1 right join maxhr on s1.hr=maxhr.max_hr and s1.stay_id = maxhr.stay_id),
+vent24 as (select s.stay_id,v.ventilation_status as vent_24 from (select * from physionet-data.mimic_derived.sofa where hr=24)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+vent48 as (select s.stay_id,v.ventilation_status as vent_48 from (select * from physionet-data.mimic_derived.sofa where hr=48)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+vent72 as (select s.stay_id,v.ventilation_status as vent_72 from (select * from physionet-data.mimic_derived.sofa where hr=72)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+vent96 as (select s.stay_id,v.ventilation_status as vent_96 from (select * from physionet-data.mimic_derived.sofa where hr=96)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+vent120 as (select s.stay_id,v.ventilation_status as vent_120 from (select * from physionet-data.mimic_derived.sofa where hr=120)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+vent144 as (select s.stay_id,v.ventilation_status as vent_144 from (select * from physionet-data.mimic_derived.sofa where hr=144)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+vent168 as (select s.stay_id,v.ventilation_status as vent_168 from (select * from physionet-data.mimic_derived.sofa where hr=168)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+vent192 as (select s.stay_id,v.ventilation_status as vent_192 from (select * from physionet-data.mimic_derived.sofa where hr=192)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+vent216 as (select s.stay_id,v.ventilation_status as vent_216 from (select * from physionet-data.mimic_derived.sofa where hr=216)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+vent240 as (select s.stay_id,v.ventilation_status as vent_240 from (select * from physionet-data.mimic_derived.sofa where hr=240)  as s inner join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status != "None") as v 
+on s.stay_id = v.stay_id  and s.starttime >= DATETIME_TRUNC(v.starttime, HOUR) and s.endtime<=DATETIME_TRUNC(v.endtime,HOUR)),
+ventlast as  (select v.stay_id, v.ventilation_status as vent_last from (select sf.stay_id,sf.starttime,sf.endtime,sf.hr from physionet-data.mimic_derived.sofa as sf 
+inner join maxhr on maxhr.stay_id = sf.stay_id and maxhr.max_hr=sf.hr+24) 
+as s left join 
+(select * from `physionet-data.mimic_derived.ventilation` where ventilation_status = "InvasiveVent") as v 
+on s.stay_id = v.stay_id  and s.starttime <= v.endtime),
+adm as (select hadm_id, deathtime,admission_type,admission_location,discharge_location from `physionet-data.mimic_core.admissions`)
+select distinct * from  `physionet-data.mimic_derived.icustay_detail` as cohort 
+left join sofa24 on cohort.stay_id = sofa24.stay_id 
+left join sofa48 on cohort.stay_id = sofa48.stay_id
+left join sofa72 on cohort.stay_id = sofa72.stay_id
+left join sofa96 on cohort.stay_id = sofa96.stay_id
+left join sofa120 on cohort.stay_id = sofa120.stay_id
+left join sofa144 on cohort.stay_id = sofa144.stay_id
+left join sofa168 on cohort.stay_id = sofa168.stay_id
+left join sofa192 on cohort.stay_id = sofa192.stay_id
+left join sofa216 on cohort.stay_id = sofa216.stay_id
+left join sofa240 on cohort.stay_id = sofa240.stay_id
+left join sofalast on cohort.stay_id = sofalast.stay_id
+left join vent24 on cohort.stay_id = vent24.stay_id
+left join vent48 on cohort.stay_id = vent48.stay_id
+left join vent72 on cohort.stay_id = vent72.stay_id
+left join vent96 on cohort.stay_id = vent96.stay_id
+left join vent120 on cohort.stay_id = vent120.stay_id
+left join vent144 on cohort.stay_id = vent144.stay_id
+left join vent168 on cohort.stay_id = vent168.stay_id
+left join vent192 on cohort.stay_id = vent192.stay_id
+left join vent216 on cohort.stay_id = vent216.stay_id
+left join vent240 on cohort.stay_id = vent240.stay_id
+left join ventlast on ventlast.stay_id = cohort.stay_id
+left join adm on cohort.hadm_id = adm.hadm_id
+left join physionet-data.mimic_derived.sepsis3 as s3 on cohort.stay_id = s3.stay_id

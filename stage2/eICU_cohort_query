@@ -1,0 +1,39 @@
+with 
+
+mventevent24 as
+(SELECT distinct patientunitstayid FROM `physionet-data.eicu_crd_derived.ventilation_events`
+where event = "mechvent start" and hrs <= 24 
+INTERSECT DISTINCT
+SELECT distinct patientunitstayid FROM `physionet-data.eicu_crd_derived.ventilation_events`
+where event = "mechvent end" and hrs >= 24),
+
+mventevent168 as
+(SELECT distinct patientunitstayid FROM `physionet-data.eicu_crd_derived.ventilation_events`
+where event = "mechvent start" and hrs <= 168 
+INTERSECT DISTINCT
+SELECT distinct patientunitstayid FROM `physionet-data.eicu_crd_derived.ventilation_events`
+where event = "mechvent end" and hrs >= 168),
+
+sofa24 as (select patientunitstayid,sofa_resp as resp_24,sofa_gcs as cns_24,sofa_circ as cv_24,sofa_liver as liver_24,sofa_hematology as coag_24, sofa_renal as renal_24   from `alert-basis-349808.eICUsofa.ITU_SOFA` where day = 1 ),
+
+sofa168 as (select patientunitstayid,sofa_resp as resp_168,sofa_gcs as cns_168,sofa_circ as cv_168,sofa_liver as liver_168,sofa_hematology as coag_168, sofa_renal as renal_168   from `alert-basis-349808.eICUsofa.ITU_SOFA` where day = 7 ),
+
+vent24 as (select patientunitstayid as mv24 from `alert-basis-349808.eICU_Xiaoli_vent.invasive` where starttime<24*60 and endtime>24*60),
+vent168 as (select patientunitstayid as mv168 from `alert-basis-349808.eICU_Xiaoli_vent.invasive` where starttime<168*60 and endtime>168*60),
+allvent24 as (select patientunitstayid as allv24 from `alert-basis-349808.eICU_Xiaoli_vent.all` where starttime<24*60 and endtime>24*60),
+allvent168 as (select patientunitstayid as allv168 from `alert-basis-349808.eICU_Xiaoli_vent.all` where starttime<168*60 and endtime>168*60),
+
+vent241 as (select patientunitstayid as mvevent24 from mventevent24),
+vent1681 as (select patientunitstayid as mvevent168 from mventevent168),
+patient as (select patientunitstayid, hospitaldischargelocation, unitdischargestatus, hospitaldischargestatus from `physionet-data.eicu_crd.patient` )
+ 
+select distinct * from  `physionet-data.eicu_crd_derived.icustay_detail` as cohort 
+left join sofa24 on cohort.patientunitstayid = sofa24.patientunitstayid
+left join sofa168 on cohort.patientunitstayid = sofa168.patientunitstayid
+left join vent24 on cohort.patientunitstayid = vent24.mv24
+left join vent168 on cohort.patientunitstayid = vent168.mv168
+left join allvent24 on cohort.patientunitstayid = allvent24.allv24
+left join allvent168 on cohort.patientunitstayid = allvent168.allv168
+left join vent241 on cohort.patientunitstayid = vent241.mvevent24
+left join vent1681 on cohort.patientunitstayid = vent1681.mvevent168
+left join patient on cohort.patientunitstayid = patient.patientunitstayid
